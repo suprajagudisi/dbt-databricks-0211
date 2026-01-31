@@ -1,0 +1,85 @@
+name: 'dbt_databricks_incremental'
+version: '1.0.0'
+config-version: 2
+
+profile: 'databricks_dev'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Databricks-specific configurations
+vars:
+  # Unity Catalog configuration
+  catalog: 'workspace'
+  
+# Seed configuration
+seeds:
+  dbt_databricks_incremental:
+    +quote_columns: false
+    +schema: bronze
+    +file_format: delta
+    
+    events:
+      +column_types:
+        event_timestamp: timestamp
+        event_date: date
+        amount: decimal(10,2)
+    
+    customers:
+      +column_types:
+        signup_date: date
+        updated_at: timestamp
+    
+    sales_detail:
+      +column_types:
+        sale_date: date
+        quantity: integer
+        unit_price: decimal(10,2)
+        total_amount: decimal(10,2)
+        created_at: timestamp
+        updated_at: timestamp
+    
+    products:
+      +column_types:
+        price: decimal(10,2)
+        stock_quantity: integer
+        is_active: boolean
+        last_updated: timestamp
+
+# Model configuration
+models:
+  dbt_databricks_incremental:
+    +schema: silver
+    +file_format: delta
+    
+    01_append:
+      +materialized: incremental
+      +incremental_strategy: append
+      +tags: ['incremental', 'append']
+    
+    02_merge:
+      +materialized: incremental
+      +incremental_strategy: merge
+      +tags: ['incremental', 'merge']
+    
+    03_delete_insert:
+      +materialized: incremental
+      +incremental_strategy: delete+insert
+      +tags: ['incremental', 'delete_insert']
+    
+    04_insert_overwrite:
+      +materialized: incremental
+      +incremental_strategy: insert_overwrite
+      +tags: ['incremental', 'insert_overwrite']
+    
+    05_microbatch:
+      +materialized: incremental
+      +incremental_strategy: microbatch
+      +tags: ['incremental', 'microbatch']

@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: snowflake_alternative
+    description: |
+      INSERT_OVERWRITE alternative for Snowflake.
+      
+      Why this exists:
+      - Snowflake doesn't support INSERT_OVERWRITE natively
+      - This pattern achieves similar behavior
+      - Uses DELETE+INSERT on date partitions
+      - Atomic replacement of daily partitions
+      
+      Equivalent on other platforms:
+      - BigQuery: incremental_strategy='insert_overwrite'
+      - Databricks: incremental_strategy='insert_overwrite'
+      - Snowflake: incremental_strategy='delete+insert' (this)
+      
+      When to use:
+      - Need to replace entire date's data
+      - Want atomic partition replacement
+      - Migrating from BigQuery/Databricks to Snowflake
+      
+      Performance:
+      - Full refresh: 2-5s
+      - Incremental: 1-3s
+      - Cost: Medium (similar to regular DELETE+INSERT)
+      
+      Gotchas:
+      - Same as DELETE+INSERT strategy
+      - Document clearly that this is an alternative pattern
+    
+    config:
+      tags: ['incremental', 'insert_overwrite_alternative']
+    
+    columns:
+      - name: event_date
+        description: Date partition key
+        tests:
+          - unique
+          - not_null
+
+  - name: daily_events_with_clustering
+    description: |
+      INSERT_OVERWRITE alternative with Snowflake clustering.
+      
+      Clustering benefits:
+      - Automatic data ordering
+      - Faster queries on (event_date, user_id)
+      - No manual maintenance
+      - Helps with range scans

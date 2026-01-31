@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: customers_incremental
+    description: |
+      Customer profiles using MERGE strategy on Databricks.
+      
+      Delta Lake MERGE Benefits:
+      - Optimized MERGE INTO command
+      - ACID transactions
+      - Schema evolution support
+      - Time travel capabilities
+      
+      Configuration:
+      - unique_key='customer_id' for matching
+      - Partitioned by country for performance
+      - Clustered by customer_id
+    
+    config:
+      tags: ['incremental', 'merge', 'dimension', 'delta']
+    
+    columns:
+      - name: customer_id
+        description: Unique customer identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: updated_at
+        description: Last update timestamp
+        tests:
+          - not_null
+
+  - name: customers_with_surrogate_key
+    description: |
+      Same as customers_incremental but with surrogate key.
+      Recommended for production use.
+    
+    columns:
+      - name: customer_sk
+        description: Surrogate key (hash of customer_id)
+        tests:
+          - unique
+          - not_null

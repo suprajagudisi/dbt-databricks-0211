@@ -1,0 +1,76 @@
+snowflake_dev:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: YOUR_ACCOUNT_ID  # e.g., abc12345.us-east-1 or WDGKXQD-GS23287
+      user: your_username
+      password: your_password
+      
+      # Authentication alternatives:
+      # 1. Browser-based SSO (recommended for development)
+      # authenticator: externalbrowser
+      # 2. Private key authentication
+      # private_key_path: ~/.ssh/snowflake_key.p8
+      # private_key_passphrase: your_passphrase
+      
+      role: ACCOUNTADMIN        # Or your assigned role
+      database: SNOWFLAKE_LEARNING_DB  # Must exist
+      warehouse: COMPUTE_WH     # Must exist
+      schema: default           # Set to 'default' to allow custom generate_schema_name macro to work
+      
+      # Performance tuning
+      threads: 4
+      client_session_keep_alive: false
+      
+      # Optional: Enable query result caching
+      # query_tag: dbt
+    
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"  # Use environment variables for prod
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: transformer_prod
+      database: analytics_prod
+      warehouse: prod_wh
+      schema: marts
+      threads: 8
+      client_session_keep_alive: false
+
+# HOW TO SET UP:
+# 1. Copy this file to profiles.yml
+#    cp profiles.yml.example profiles.yml
+#
+# 2. Get your Snowflake credentials:
+#    - Account: Admin → Account → Copy account identifier
+#      Example: abc12345.us-east-1 or WDGKXQD-GS23287
+#    
+#    - User: Your Snowflake username
+#    
+#    - Password: Your Snowflake password
+#    
+#    - Warehouse: Must exist (Admin → Warehouses)
+#      Create if needed: CREATE WAREHOUSE COMPUTE_WH WITH WAREHOUSE_SIZE = 'X-SMALL';
+#    
+#    - Database: Must exist
+#      Create if needed: CREATE DATABASE SNOWFLAKE_LEARNING_DB;
+#
+# 3. Run this SQL in Snowflake to set up permissions:
+#    -- Create warehouse if needed
+#    CREATE WAREHOUSE IF NOT EXISTS COMPUTE_WH
+#      WAREHOUSE_SIZE = 'X-SMALL'
+#      AUTO_SUSPEND = 60
+#      AUTO_RESUME = TRUE;
+#    
+#    -- Create database
+#    CREATE DATABASE IF NOT EXISTS SNOWFLAKE_LEARNING_DB;
+#    
+#    -- Grant permissions
+#    GRANT ALL ON DATABASE SNOWFLAKE_LEARNING_DB TO ROLE ACCOUNTADMIN;
+#    GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE ACCOUNTADMIN;
+#
+# 4. Edit profiles.yml with your actual credentials
+#
+# 5. Test connection:
+#    dbt debug

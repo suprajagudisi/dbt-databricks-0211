@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: events_incremental
+    description: |
+      Event logs using APPEND strategy on Databricks.
+      
+      Databricks Optimizations:
+      - Delta Lake file format
+      - Partitioned by event_date
+      - Clustered by user_id, event_name (Liquid Clustering)
+      - Auto-optimized with OPTIMIZE command
+      
+      Perfect for:
+      - Immutable event streams
+      - High-volume inserts
+      - Time-series data
+    
+    config:
+      tags: ['incremental', 'append', 'events', 'delta']
+    
+    columns:
+      - name: event_id
+        description: Unique event identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: event_timestamp
+        description: When event occurred
+        tests:
+          - not_null
+      
+      - name: event_date
+        description: Partition key (date only)
+        tests:
+          - not_null

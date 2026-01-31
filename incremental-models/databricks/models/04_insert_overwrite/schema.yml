@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: events_insert_overwrite
+    description: |
+      Event logs using native INSERT_OVERWRITE on Databricks.
+      
+      Why INSERT_OVERWRITE on Databricks:
+      - Atomic partition replacement
+      - Much faster than DELETE+INSERT for large tables
+      - Leverages Delta Lake architecture
+      - No separate DELETE operation needed
+      - Optimized file layout
+      
+      Configuration:
+      ```
+      incremental_strategy='insert_overwrite'
+      partition_by={'field': 'event_date', 'data_type': 'date'}
+      cluster_by=['user_id', 'event_name']
+      ```
+      
+      How it works:
+      1. dbt identifies affected partitions from WHERE clause
+      2. Atomically overwrites entire partitions
+      3. New data written with optimal file sizes
+      4. OPTIMIZE consolidates small files
+      
+      Performance:
+      - 3-5x faster than MERGE for bulk inserts
+      - 2-3x faster than DELETE+INSERT
+      - Optimal for time-partitioned data
+    
+    config:
+      tags: ['incremental', 'insert_overwrite', 'delta', 'partitioned']
+    
+    columns:
+      - name: event_id
+        description: Unique event identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: event_date
+        description: Partition key
+        tests:
+          - not_null
+
+  - name: daily_events_partitioned
+    description: |
+      Daily event aggregations with advanced Delta Lake features.
+      
+      Features:
+      - Liquid Clustering for flexible sorting
+      - Auto-optimize write (fewer small files)
+      - Auto-compact (background optimization)
+      - Target file size optimization (128MB)

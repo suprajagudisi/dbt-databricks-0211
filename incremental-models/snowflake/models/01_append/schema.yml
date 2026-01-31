@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: events_incremental
+    description: |
+      Event logs using APPEND strategy on Snowflake.
+      
+      Key Features:
+      - Insert-only, no updates
+      - Fastest incremental strategy
+      - Uses timestamp-based filtering
+      - 10-minute buffer for clock skew
+      
+      When to use:
+      - Event logs (never update)
+      - Immutable data sources
+      - High-volume inserts
+      - Real-time data feeds
+      
+      Performance:
+      - Full refresh: 1-2s (small dataset)
+      - Incremental: <1s
+      - Cost: Minimal
+      
+      Common gotchas:
+      1. Clock skew: Source ahead of warehouse → misses records
+      2. NULL timestamps: Breaks MAX() filter → no records processed
+      3. Source retries: Duplicates if pipeline retries
+    
+    config:
+      tags: ['incremental', 'append', 'events']
+      unique_constraints: ['event_id']
+    
+    columns:
+      - name: event_id
+        description: Unique event identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: event_timestamp
+        description: When event occurred (critical for filtering)
+        tests:
+          - not_null
+      
+      - name: event_date
+        description: Date portion (for manual partitioning)
+        tests:
+          - not_null

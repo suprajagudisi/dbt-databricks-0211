@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: customers_incremental
+    description: |
+      Customer profiles using MERGE strategy on Snowflake.
+      
+      Configuration:
+      - unique_key='customer_id' for matching
+      - merge_update_columns=['customer_name', 'email', 'phone', 'country']
+      - NULL filter on customer_id
+      
+      When to use:
+      - Dimension tables (slow change)
+      - Customer/product masters
+      - Records can be created or updated
+      - Relatively small volume updates
+      
+      Performance:
+      - Full refresh: 2-5s
+      - Incremental: 1-3s (depends on % updated)
+      - Cost: Medium
+      
+      Common gotchas:
+      1. NULL unique_key: Causes silent duplicates
+      2. Composite keys: Fail mysteriously
+      3. Race conditions: Two dbt runs simultaneously
+      4. Updated_at not updated: Use manually if needed
+      5. Wide tables: MERGE slower with 100+ columns
+      6. merge_exclude_columns vs merge_update_columns: Easy to confuse
+    
+    config:
+      tags: ['incremental', 'merge', 'dimension']
+    
+    columns:
+      - name: customer_id
+        description: Unique customer identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: updated_at
+        description: Last profile update (critical for filtering)
+        tests:
+          - not_null
+
+  - name: customers_with_surrogate_key
+    description: |
+      Same as customers_incremental but uses surrogate key.
+      RECOMMENDED approach for production to avoid composite key issues.
+      
+      Gotcha fixed:
+      - Composite keys unreliable on Snowflake
+      - Surrogate key always matches correctly
+    
+    columns:
+      - name: customer_sk
+        description: Surrogate key (MD5 hash of customer_id)
+        tests:
+          - unique
+          - not_null

@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: daily_sales_summary
+    description: |
+      Daily sales aggregations using DELETE+INSERT on Snowflake.
+      
+      Configuration:
+      - unique_key='sale_date' (deletes by date)
+      - 7-day lookback for late-arriving data
+      
+      When to use:
+      - Daily aggregations
+      - Hourly rollups
+      - Periodic snapshots
+      - Data must be completely recalculated
+      
+      Performance:
+      - Full refresh: 3-8s
+      - Incremental: 2-5s
+      - Cost: Medium
+      
+      Common gotchas:
+      1. NOT atomic: Delete succeeds, insert fails → data loss
+      2. Clock skew: Date boundaries misaligned
+      3. Wrong WHERE clause: Deletes everything
+      4. Partition key changes: Delete logic breaks
+      5. Overlapping windows: Multiple models delete same period
+      
+      Prevention:
+      - Test DELETE logic before running
+      - Use explicit transaction (BEGIN/COMMIT)
+      - Document partition key in code
+      - Coordinate boundaries with other models
+    
+    config:
+      tags: ['incremental', 'delete_insert', 'aggregation']
+    
+    columns:
+      - name: sale_date
+        description: Date partition key
+        tests:
+          - unique
+          - not_null
+      
+      - name: total_revenue
+        description: Daily revenue total
+        tests:
+          - not_null
+
+  - name: daily_sales_by_customer
+    description: |
+      Daily customer sales using composite unique_key.
+      Demonstrates multiple-column deletion pattern.

@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: events_microbatch_example
+    description: |
+      🎯 MICROBATCH STRATEGY EXAMPLE - Automatic Batch Processing!
+      
+      This model demonstrates the MICROBATCH incremental strategy (dbt 1.9+).
+      It's the smartest way to handle streaming data and late arrivals.
+      
+      **What makes it special:**
+      ✅ Automatic time-based batch processing (daily in this example)
+      ✅ No manual date filtering logic required
+      ✅ Built-in late arrival handling with lookback parameter
+      ✅ Processes one batch at a time for better performance
+      ✅ Automatic retry of failed batches only
+      
+      **Configuration:**
+      - event_time='event_timestamp' → Column used for batching
+      - batch_size='day' → Process one day at a time
+      - lookback=0 → No reprocessing (set to 2 to reprocess last 2 days)
+      - begin='2026-01-30' → Start date for initial load
+      
+      **How it works:**
+      Full refresh → Processes ALL batches from begin date to today
+        - Batch 1: 2026-01-30 (10 events)
+        - Batch 2: 2026-01-31 (10 events)
+      
+      Incremental → Processes only NEW batches since last run
+        - Automatically identifies which batches need processing
+        - With lookback=2, also reprocesses last 2 batches
+      
+      **Perfect for:**
+      - Real-time streaming data pipelines
+      - High-volume event logs (clickstreams, IoT sensors)
+      - Data with late arrivals or corrections
+      - Daily/hourly aggregations
+      - Simplifying complex incremental models
+      
+      **Snowflake Benefits:**
+      - Works with Snowflake time travel
+      - Integrates with Snowflake tasks
+      - Optimized for micro-partitions
+      
+      **Compare to other strategies:**
+      - APPEND: No deduplication, just inserts
+      - MERGE: Slow, but handles updates
+      - DELETE+INSERT: Manual date logic required
+      - INSERT_OVERWRITE: Manual is_incremental logic required
+      - MICROBATCH: 🏆 Automatic, smart, handles late data!
+    
+    config:
+      tags: ['incremental', 'microbatch', 'example', 'streaming']
+    
+    columns:
+      - name: event_id
+        description: Unique event identifier
+        tests:
+          - unique
+          - not_null
+      
+      - name: event_timestamp
+        description: |
+          Event timestamp - CRITICAL for microbatch strategy.
+          This is the column dbt uses to automatically filter batches.
+        tests:
+          - not_null
+      
+      - name: batch_day
+        description: The day this event belongs to (derived from event_timestamp)
+      
+      - name: processed_at
+        description: Timestamp when this record was processed by dbt
+      
+      - name: dbt_run_time
+        description: The dbt run start time for this batch

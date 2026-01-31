@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: daily_sales_summary
+    description: |
+      Daily sales aggregations using DELETE+INSERT on Databricks.
+      
+      Delta Lake Benefits:
+      - Atomic DELETE+INSERT in single transaction
+      - Partition pruning for performance
+      - OPTIMIZE automatically consolidates files
+      
+      Configuration:
+      - unique_key='sale_date' for date-based deletion
+      - Partitioned by sale_date
+      - 7-day lookback for late-arriving data
+    
+    config:
+      tags: ['incremental', 'delete_insert', 'aggregation', 'delta']
+    
+    columns:
+      - name: sale_date
+        description: Date partition key
+        tests:
+          - unique
+          - not_null
+      
+      - name: total_revenue
+        description: Daily revenue total
+        tests:
+          - not_null
+
+  - name: daily_sales_by_customer
+    description: |
+      Daily customer sales using composite unique_key.
+      Demonstrates multiple-column deletion pattern.

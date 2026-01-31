@@ -1,0 +1,81 @@
+name: 'dbt_snowflake_incremental'
+version: '1.0.0'
+config-version: 2
+
+profile: 'snowflake_dev'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Seed configuration
+seeds:
+  dbt_snowflake_incremental:
+    +quote_columns: false
+    +schema: bronze  # Changed from 'raw' to 'bronze' to match Databricks
+    
+    events:
+      +column_types:
+        event_timestamp: timestamp_ntz
+        event_date: date
+        amount: decimal(10,2)
+    
+    customers:
+      +column_types:
+        signup_date: date
+        updated_at: timestamp_ntz
+    
+    sales_detail:
+      +column_types:
+        sale_date: date
+        quantity: integer
+        unit_price: decimal(10,2)
+        total_amount: decimal(10,2)
+        created_at: timestamp_ntz
+        updated_at: timestamp_ntz
+    
+    products:
+      +column_types:
+        price: decimal(10,2)
+        stock_quantity: integer
+        is_active: boolean
+        last_updated: timestamp_ntz
+
+# Model configuration
+models:
+  dbt_snowflake_incremental:
+    # Default settings for all models
+    +materialized: table
+    +transient: false
+    +schema: silver  # Models go to silver schema
+    
+    01_append:
+      +materialized: incremental
+      +incremental_strategy: append
+      +tags: ['incremental', 'append']
+    
+    02_merge:
+      +materialized: incremental
+      +incremental_strategy: merge
+      +tags: ['incremental', 'merge']
+    
+    03_delete_insert:
+      +materialized: incremental
+      +incremental_strategy: delete+insert
+      +tags: ['incremental', 'delete_insert']
+    
+    04_insert_overwrite:
+      +materialized: incremental
+      +incremental_strategy: delete+insert
+      +tags: ['incremental', 'insert_overwrite_alternative']
+    
+    05_microbatch:
+      +materialized: incremental
+      +incremental_strategy: microbatch
+      +tags: ['incremental', 'microbatch']

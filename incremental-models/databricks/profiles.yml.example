@@ -1,0 +1,51 @@
+databricks_dev:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      
+      # Connection method 1: SQL Warehouse (recommended)
+      host: your-workspace.cloud.databricks.com  # WITHOUT https:// prefix
+      http_path: /sql/1.0/warehouses/your_warehouse_id
+      
+      # Authentication
+      token: your_personal_access_token  # Generate from User Settings → Developer → Access Tokens
+      
+      # Catalog configuration (Unity Catalog)
+      catalog: workspace  # Or your Unity Catalog name
+      schema: default     # Set to 'default' to allow custom generate_schema_name macro to work
+      
+      # Performance
+      threads: 4
+      
+      # Optional: Use serverless compute
+      # connection_parameters:
+      #   http_path: /sql/1.0/warehouses/serverless
+    
+    prod:
+      type: databricks
+      host: your-workspace.cloud.databricks.com
+      http_path: /sql/1.0/warehouses/prod_warehouse_id
+      token: "{{ env_var('DBT_DATABRICKS_TOKEN') }}"  # Use environment variable for prod
+      catalog: workspace
+      schema: production
+      threads: 8
+
+# HOW TO SET UP:
+# 1. Copy this file to profiles.yml
+#    cp profiles.yml.example profiles.yml
+#
+# 2. Get your Databricks credentials:
+#    - Host: Your workspace URL (remove https://)
+#      Example: dbc-abc12345-xyz.cloud.databricks.com
+#    
+#    - HTTP Path: SQL Warehouse → Connection Details → HTTP Path
+#      Example: /sql/1.0/warehouses/abc123def456
+#    
+#    - Token: User Settings → Developer → Access Tokens → Generate New Token
+#      Example: dapi1234567890abcdef1234567890ab
+#
+# 3. Edit profiles.yml with your actual credentials
+#
+# 4. Test connection:
+#    dbt debug
