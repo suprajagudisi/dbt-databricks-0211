@@ -49,4 +49,3 @@ databricks_dev:
 #
 # 4. Test connection:
 #    dbt debug
-#    dbt debug and run
