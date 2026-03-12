@@ -1,8 +1,8 @@
-name: 'dbt_databricks_incremental'
+name: 'dbt_complete_databricks_guide'
 version: '1.0.0'
 config-version: 2
 
-profile: 'databricks_dev'
+profile: 'dbt_complete_databricks_guide'
 
 model-paths: ["models"]
 seed-paths: ["seeds"]
